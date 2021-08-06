@@ -44,6 +44,9 @@ function getPinyin (hanzi) {
         style: pinyin.STYLE_NORMAL
       })
       return wordsGroups.forEach(function (word) {
+        console.log("--xxxxxxxxxxxxxxx--")
+        console.log(JSON.stringify(word))
+        console.log("--xxxxxxxxxxxxxxx--")
         initials.push(word[0][0])
         words.push('\'' + word[0])
       })
@@ -52,10 +55,10 @@ function getPinyin (hanzi) {
     return (initials.join('') + '|' + words.join('')).toLowerCase()
   }
 
-  var a="我和我的#$%^&*祖国，一刻也不能分割,我和我的#$%^&*祖国，一刻也不能分割！！  @ xx #c !&^ I love china 哈哈#"
+  var a="测试一个很长很长。。。很长很长。。。很长很长。。。很长很长。。。很长很长。。。很长很长。。。很长很长。。。很长很长。。。的中文!!!!@ 我和我的#$%^&*祖国，一刻也不能分割,我和我的#$%^&*祖国，一刻也不能分割！！  @ xx #c !&^ I love china 哈哈#"
 
   console.log(getPinyin(a))
 
-  console.log(a.replace(/[^\u4E00-\u9FFFa-zA-Z0-9]+$/g," "))
+  //console.log(a.replace(/[^\u4E00-\u9FFFa-zA-Z0-9]+$/g," "))
 
-  console.log(a.replace(/[\u4E00-\u9FFFa-zA-Z0-9]+$/g," "))
+  //console.log(a.replace(/[\u4E00-\u9FFFa-zA-Z0-9]+$/g," "))
