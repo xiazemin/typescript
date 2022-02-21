@@ -1,0 +1,34 @@
+{
+  "name": "y",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "dist": "electron-builder --mac --x64",
+    "package": "electron-packager ./ myapp --out ./OutApp --platform=darwin --app-version 1.7.9 --overwrite --icon=./aigei_com.ico",
+    "dist-mac": "electron-builder --mac",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@electron/remote": "2.0.4",
+    "electron": "^17.0.1",
+    "electron-builder": "^22.14.13"
+  },
+  "build": {
+    "appId": "com.xxx.app",
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "zip"
+      ]
+    }
+  }
+}

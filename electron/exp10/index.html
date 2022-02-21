@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <button id="clickBtn">打开图片</button>
+        <img id="images" style="width:100%"/>
+        <button id="saveBtn">保存图片</button>
+        <button id="msgBtn">消息对话框</button>
+    </body>
+    <script>
+        const {dialog}=require('@electron/remote')
+        const fs=require('fs')
+        document.getElementById('clickBtn').onclick=()=>{
+            dialog.showOpenDialog(
+            {
+                title:"打开文件",
+                defaultPath:"aa.jpg",
+                filters:[{name:'img',extensions:['jpg','png']}],
+                buttonLabel:"打开哈哈哈"
+            }
+            ).then(result=>{
+                document.getElementById('images').setAttribute('src',result.filePaths[0])
+            }).catch(err=>console.log(err))
+        }
+
+        document.getElementById('saveBtn').onclick=function(){
+            dialog.showSaveDialog({
+                title:"保存图片哈哈哈"
+            }).then(
+                result=>{
+                    console.log(result)
+                    fs.writeFileSync(result.filePath,'alabo.jpg')
+                }
+            ).catch(err=>console.log(err))
+        }
+
+        document.getElementById('msgBtn').onclick=()=>{
+            dialog.showMessageBox({
+                type:'warning',
+                title:"测试下对话框的结果",
+                message:"对话框的消息",
+                buttons:["yes","no"]
+            }).then(
+                result=>console.log(result)
+            )
+        }
+    </script>
+</html>

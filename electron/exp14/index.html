@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+    <body>
+激活码：<span id="code">cjabjvfsfskgsjgj</span>
+<button id="btn">复制激活码</button>
+    </body>
+    <script>
+const {clipboard}=require('electron')
+const code=document.getElementById('code')
+
+document.getElementById('btn').onclick=function(){
+    clipboard.writeText(code.innerHTML)
+    alert("复制成功")
+}
+</script>
+</html>

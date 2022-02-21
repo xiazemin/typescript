@@ -1,0 +1,22 @@
+{
+  "name": "elec",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "package": "electron-packager . '应用名称' --platform=darwin --arch=x64 --icon=Pikachu.ico --out=./dist --asar --app-version=1.0.0 --ignore=\"(dist|src|docs|.gitignore|LICENSE|README.md|webpack.config*|node_modules)\"",
+    "packageDarwin": "electron-packager . '应用名称' --platform=darwin --arch=x64 --icon=Pikachu.ico --out=./dist --asar --app-version=1.0.0 --ignore=\"(dist|src|docs|.gitignore|LICENSE|README.md|webpack.config*|node_modules)\"",
+    "packageDarwin2": "electron-packager . '应用名称' --platform=darwin --arch=x64 --icon=Pikachu.ico --out=./dist --asar --app-version=1.0.0",
+    "packageWin": "electron-packager . '应用名称' --platform=win32 --arch=x64 --icon=Pikachu.ico --out=./dist --asar --app-version=1.0.0 --ignore=\"(dist|src|docs|.gitignore|LICENSE|README.md|webpack.config.js|node_modules)\"",
+    "packageWin2": "electron-packager . '应用名称' --platform=win32 --arch=x64 --icon=Pikachu.ico --out=./dist --asar --app-version=1.0.0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron-packager": "^15.4.0",
+    "electron": "^17.0.1",
+    "@electron/remote": "2.0.4"
+  }
+}

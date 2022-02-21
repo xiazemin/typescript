@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+    <body>
+       <button id="notifyBtn">通知消息</button>
+    </body>
+    <script>
+      var btn=document.getElementById('notifyBtn')
+
+      var option={
+          title:"hhhh",
+          body:"body"
+      }
+
+      btn.onclick=()=>{
+          new window.Notification(option.title,option)
+      }
+    </script>
+</html>

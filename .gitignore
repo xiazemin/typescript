@@ -1,0 +1,8 @@
+**/node_modules/
+**/**/node_modules/
+**.dmg
+**/**.dmg
+*.dmg
+**/dist
+**/**/dist
+**/dmg
