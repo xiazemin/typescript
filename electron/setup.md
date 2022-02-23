@@ -65,3 +65,39 @@ cnpm install electron-installer-dmg -g
 git rm -r -f --cached **/node_modules/
 
 git rm -r --cached .
+
+ git diff origin/master..master  --name-only
+ 
+ https://www.jianshu.com/p/c70766b05408
+
+export NODE_PATH='/usr/local' 
+% npm prefix -g             
+/usr/local
+
+export NODE_PATH='/usr/local/lib/node_modules/'
+
+export NODE_HOME='/usr/local/bin'
+export PATH=$NODE_HOME:$PATH
+
+npm config set cache /usr/local/lib/node_modules
+npm config set prefix /usr/local/lib/node_modules
+
+
+vi ~/.zshrc 
+export NODE_PATH="/usr/local/lib/node_modules/"
+source ~/.zshrc
+https://www.cnblogs.com/miaodi/p/6607812.html
+
+
+npm install --save
+https://stackoverflow.com/questions/35682131/electron-packager-cannot-find-module
+
+cnpm install --save
+
+https://segmentfault.com/a/1190000014209821
+
+
+cnpm i electron --save
+cnpm i @electron/remote --save
+
+原因 不能 --ignore dist/src/node_modules
