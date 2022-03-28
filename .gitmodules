@@ -1,0 +1,3 @@
+[submodule "quill-sharedb-cursors"]
+	path = quill-sharedb-cursors
+	url = https://github.com/pedrosanta/quill-sharedb-cursors
