@@ -71,4 +71,10 @@ https://www.cnblogs.com/a1231230/p/12107592.html
 
      script(src='//cdnjs.cloudflare.com/ajax/libs/chance/1.0.6/chance.min.js')
     script(src='/javascripts/chance.min.js')
-    
+
+
+
+    % cp node_modules/chance/dist/chance.min.js.map public/javascripts 
+
+
+  https://github.com/chancejs/chancejs/blob/master/dist/chance.min.js.map  
