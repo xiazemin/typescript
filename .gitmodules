@@ -10,3 +10,6 @@
 [submodule "sharedb/derby"]
 	path = sharedb/derby
 	url = https://github.com/derbyjs/derby
+[submodule "ot.js"]
+	path = ot.js
+	url = https://github.com/Operational-Transformation/ot.js
