@@ -13,3 +13,6 @@
 [submodule "ot.js"]
 	path = ot.js
 	url = https://github.com/Operational-Transformation/ot.js
+[submodule "js-xlsx/--force"]
+	path = js-xlsx/--force
+	url = https://github.com/SheetJS/sheetjs
