@@ -16,3 +16,6 @@
 [submodule "js-xlsx/--force"]
 	path = js-xlsx/--force
 	url = https://github.com/SheetJS/sheetjs
+[submodule "Luckysheet"]
+	path = Luckysheet
+	url = https://github.com/mengshukeji/Luckysheet
