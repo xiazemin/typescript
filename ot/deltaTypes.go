@@ -44,11 +44,8 @@ func (o *QuillDelta) Compose(operationIn Delta) (Delta, error) {
 
 	for true {
 		// Dispatch on the type of op1 and op2
-		if i1 == len(ops1) && i2 == len(ops2) {
-			// end condition: both ops1 and ops2 have been processed
-			break
-		}
 		if op1 == nil && op2 == nil {
+			// end condition: both ops1 and ops2 have been processed
 			break
 		}
 
@@ -72,7 +69,7 @@ func (o *QuillDelta) Compose(operationIn Delta) (Delta, error) {
 
 		// op1,op2 的组合有 retain retain； retain delete;insert retain；insert delete
 
-		if op1 == nil || i1 == len(ops1) {
+		if op1 == nil {
 			fmt.Println("Cannot compose operations: first operation is too short.")
 			for op2 != nil {
 				if op2.IsRetain() {
@@ -86,7 +83,7 @@ func (o *QuillDelta) Compose(operationIn Delta) (Delta, error) {
 			}
 			break
 		}
-		if op2 == nil || i2 == len(ops2) {
+		if op2 == nil {
 			fmt.Println("Cannot compose operations: first operation is too long.")
 			for op1 != nil {
 				if op1.IsRetain() {
@@ -156,7 +153,7 @@ func (o *QuillDelta) Compose(operationIn Delta) (Delta, error) {
 				op1, i1 = next(ops1, op1, i1)
 				op2, i2 = next(ops2, op2, i2)
 			} else {
-				operation.delete(op1.GetStringVal())
+				operation.delete("-" + op1.GetStringVal())
 				op2.SetVal(op2.GetVal() + op1.GetVal())
 				op1, i1 = next(ops1, op1, i1)
 			}
@@ -322,9 +319,6 @@ func (o *QuillDelta) Transform(operation1In, operation2In Delta) (Delta, Delta, 
 			// end condition: both ops1 and ops2 have been processed
 			break
 		}
-		if i1 == len(ops1) && i2 == len(ops2) {
-			break
-		}
 
 		// next two cases: one or both ops are insert ops
 		// => insert the string in the corresponding prime operation, skip it in
@@ -340,9 +334,8 @@ func (o *QuillDelta) Transform(operation1In, operation2In Delta) (Delta, Delta, 
 
 			continue
 		}
-		fmt.Println(i1, i2)
 		if op2 != nil && op2.IsInsert() {
-			operation1prime.retain(strconv.FormatInt(int64(op1.GetVal()), 10))
+			operation1prime.retain(strconv.FormatInt(int64(op2.GetVal()), 10))
 			operation2prime.insert(op2.GetStringVal())
 			op2, i2 = next(ops2, op2, i2)
 			//A = R(4),I('c')
@@ -352,8 +345,7 @@ func (o *QuillDelta) Transform(operation1In, operation2In Delta) (Delta, Delta, 
 
 		if op1 == nil {
 			fmt.Println("Cannot compose operations: first operation is too short.")
-			for i2 <= len(ops2) {
-				fmt.Println("xxxxxxx", i2, len(ops2), op2.GetStringVal())
+			for op2 != nil {
 				if op2.IsRetain() {
 					operation2prime.retain(op2.GetStringVal())
 				} else if op2.IsInsert() {
@@ -366,7 +358,8 @@ func (o *QuillDelta) Transform(operation1In, operation2In Delta) (Delta, Delta, 
 			return operation1prime, operation2prime, nil
 		}
 		if op2 == nil {
-			for i1 < len(ops1) {
+			for op1 != nil {
+				fmt.Println("Cannot compose operations: first operation is too long.")
 				if op1.IsRetain() {
 					operation1prime.retain(op1.GetStringVal())
 				} else if op1.IsInsert() {
@@ -376,7 +369,6 @@ func (o *QuillDelta) Transform(operation1In, operation2In Delta) (Delta, Delta, 
 				}
 				op1, i1 = next(ops1, op1, i1)
 			}
-			fmt.Println("Cannot compose operations: first operation is too long.")
 			return operation1prime, operation2prime, nil
 		}
 
@@ -397,14 +389,9 @@ func (o *QuillDelta) Transform(operation1In, operation2In Delta) (Delta, Delta, 
 				minl = int(op1.GetVal())
 				op2.SetVal(op2.GetVal() - op1.GetVal())
 				op1, i1 = next(ops1, op1, i1)
-				fmt.Println("xiazemin 1:", minl, op1.GetVal(), op1.IsInsert(), op2.GetVal(), op2.IsRetain())
 			}
 			operation1prime.retain(strconv.FormatInt(int64(minl), 10)) //转换后保留两者的最小位置
 			operation2prime.retain(strconv.FormatInt(int64(minl), 10))
-
-			ABData, _ := json.Marshal(operation1prime)
-			BAData, _ := json.Marshal(operation2prime)
-			fmt.Println("xiazemin **** A':", string(ABData), "\nB':", string(BAData))
 		} else if op1.IsDelete() && op2.IsDelete() {
 			// Both operations delete the same string at the same position. We don't
 			// need to produce any operations, we just skip over the delete ops and
@@ -435,7 +422,7 @@ func (o *QuillDelta) Transform(operation1In, operation2In Delta) (Delta, Delta, 
 				op2.SetVal(op2.GetVal() + op1.GetVal())
 				op1, i1 = next(ops1, op1, i1)
 			}
-			operation1prime.delete(strconv.FormatInt(int64(minl), 10))
+			operation1prime.delete(strconv.FormatInt(int64(-minl), 10))
 		} else if op1.IsRetain() && op2.IsDelete() {
 			if op1.GetVal() > -op2.GetVal() { //永远保留最小位置的情况
 				minl = int(-op2.GetVal())
@@ -450,7 +437,7 @@ func (o *QuillDelta) Transform(operation1In, operation2In Delta) (Delta, Delta, 
 				op2.SetVal(op2.GetVal() + op1.GetVal())
 				op1, i1 = next(ops1, op1, i1)
 			}
-			operation2prime.delete(strconv.FormatInt(int64(minl), 10))
+			operation2prime.delete(strconv.FormatInt(int64(-minl), 10))
 		} else {
 			op1Data, _ := json.Marshal(op1)
 			op2Data, _ := json.Marshal(op2)

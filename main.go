@@ -29,11 +29,14 @@ func main() {
 			&ot.RetainOp{
 				Retain: 6,
 			},
+			&ot.DeleteOp{
+				Delete: -3,
+			},
 			&ot.InsertOp{
 				Insert: "xiazemin",
 			},
 			&ot.DeleteOp{
-				Delete: 5,
+				Delete: -2,
 			},
 		},
 	}
@@ -88,22 +91,49 @@ func main() {
 	BAData, _ := json.Marshal(BA)
 	fmt.Println("A':", string(ABData), "\nB':", string(BAData))
 
+	fmt.Println("======================")
 	// A.compose(AB) 和 B.compose(BA) 都为：
-	da, _ := doc.Compose(A)
-	AAB, err := da.Compose(AB)
-	if err != nil {
-		fmt.Println(err)
+	A1 := &ot.QuillDelta{
+		Ops: []ot.Op{
+			&ot.RetainOp{
+				Retain: 5,
+			},
+			&ot.InsertOp{
+				Insert: ",",
+			},
+		},
 	}
-	db, _ := doc.Compose(B)
+	B1 := &ot.QuillDelta{
+		Ops: []ot.Op{
+			&ot.RetainOp{
+				Retain: 6,
+			},
+			&ot.InsertOp{
+				Insert: "xiazemin",
+			},
+			&ot.DeleteOp{
+				Delete: -5,
+			},
+		},
+	}
+	db, _ := doc.Compose(B1)
 	BBA, err := db.Compose(BA)
 	if err != nil {
 		fmt.Println(err)
 	}
+
+	da, _ := doc.Compose(A1)
+	AAB, err := da.Compose(AB)
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	AABData, _ := json.Marshal(AAB)
 	BBAData, _ := json.Marshal(BBA)
 
 	fmt.Println("AAB:", string(AABData), "\nBBA:", string(BBAData))
 
+	fmt.Println("==================")
 	// apply(apply(S, A), B) = apply(S, compose(A, B)) must hold.
 	sa, err := A.Apply("hello world")
 	if err != nil {

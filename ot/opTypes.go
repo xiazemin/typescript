@@ -23,6 +23,9 @@ type RetainOp struct {
 }
 
 func (r *RetainOp) IsRetain() bool {
+	if r == nil {
+		return false
+	}
 	return true
 }
 func (r *RetainOp) IsInsert() bool {
@@ -55,27 +58,30 @@ type InsertOp struct {
 	Attributes map[string]interface{} `json:"attributes"`
 }
 
-func (r *InsertOp) IsRetain() bool {
+func (i *InsertOp) IsRetain() bool {
 	return false
 }
-func (r *InsertOp) IsInsert() bool {
+func (i *InsertOp) IsInsert() bool {
+	if i == nil {
+		return false
+	}
 	return true
 }
-func (r *InsertOp) IsDelete() bool {
+func (i *InsertOp) IsDelete() bool {
 	return false
 }
-func (r *InsertOp) GetVal() int {
-	val, ok := r.Insert.(string)
+func (i *InsertOp) GetVal() int {
+	val, ok := i.Insert.(string)
 	if ok {
 		return len(val)
 	}
 	return 0
 }
-func (r *InsertOp) SetVal(v interface{}) {
-	r.Insert = v.(string)
+func (i *InsertOp) SetVal(v interface{}) {
+	i.Insert = v.(string)
 }
-func (r *InsertOp) GetStringVal() string {
-	val, ok := r.Insert.(string)
+func (i *InsertOp) GetStringVal() string {
+	val, ok := i.Insert.(string)
 	if ok {
 		return val
 	}
@@ -88,21 +94,24 @@ type DeleteOp struct {
 	Delete int `json:"delete"`
 }
 
-func (r *DeleteOp) IsRetain() bool {
+func (d *DeleteOp) IsRetain() bool {
 	return false
 }
-func (r *DeleteOp) IsInsert() bool {
+func (d *DeleteOp) IsInsert() bool {
 	return false
 }
-func (r *DeleteOp) IsDelete() bool {
+func (d *DeleteOp) IsDelete() bool {
+	if d == nil {
+		return false
+	}
 	return true
 }
-func (r *DeleteOp) GetVal() int {
-	return r.Delete
+func (d *DeleteOp) GetVal() int {
+	return d.Delete
 }
-func (r *DeleteOp) SetVal(v interface{}) {
-	r.Delete = v.(int)
+func (d *DeleteOp) SetVal(v interface{}) {
+	d.Delete = v.(int)
 }
-func (r *DeleteOp) GetStringVal() string {
-	return strconv.FormatInt(int64(r.Delete), 10)
+func (d *DeleteOp) GetStringVal() string {
+	return strconv.FormatInt(int64(d.Delete), 10)
 }
