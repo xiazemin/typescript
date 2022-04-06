@@ -36,11 +36,9 @@ func (o *QuillDelta) Compose(operationIn Delta) (Delta, error) {
 	operation := &QuillDelta{} // the combined operation
 	ops1 := operation1.Ops
 	ops2 := operation2.Ops // for fast access
-	var i1, i2 int         // current index into ops1 respectively ops2
-	op1 := ops1[i1]
-	op2 := ops2[i2] // current ops
-	i1++
-	i2++
+	// current index into ops1 respectively ops2
+	op1, i1 := next(ops1, 0)
+	op2, i2 := next(ops2, 0)
 
 	for true {
 		// Dispatch on the type of op1 and op2
@@ -52,14 +50,14 @@ func (o *QuillDelta) Compose(operationIn Delta) (Delta, error) {
 		//把ops1的所有删除操作执行完毕
 		if op1 != nil && op1.IsDelete() {
 			operation.delete(op1.GetStringVal())
-			op1, i1 = next(ops1, op1, i1)
+			op1, i1 = next(ops1, i1)
 			continue
 		}
 
 		//把ops2的所有插入操作执行完毕
 		if op2 != nil && op2.IsInsert() {
 			operation.insert(op2.GetStringVal())
-			op2, i2 = next(ops2, op2, i2)
+			op2, i2 = next(ops2, i2)
 			continue
 		}
 
@@ -79,7 +77,7 @@ func (o *QuillDelta) Compose(operationIn Delta) (Delta, error) {
 				} else if op2.IsDelete() {
 					operation.delete(op2.GetStringVal())
 				}
-				op2, i2 = next(ops2, op2, i2)
+				op2, i2 = next(ops2, i2)
 			}
 			break
 		}
@@ -93,7 +91,7 @@ func (o *QuillDelta) Compose(operationIn Delta) (Delta, error) {
 				} else if op1.IsDelete() {
 					operation.delete(op1.GetStringVal())
 				}
-				op1, i1 = next(ops1, op1, i1)
+				op1, i1 = next(ops1, i1)
 			}
 			break
 		}
@@ -104,58 +102,58 @@ func (o *QuillDelta) Compose(operationIn Delta) (Delta, error) {
 				operation.retain(op2.GetStringVal())
 				//把op1操作的重定位位置减小，保证，两个的和等于op1操作的位置
 				op1.SetVal(op1.GetVal() - op2.GetVal())
-				op2, i2 = next(ops2, op2, i2)
+				op2, i2 = next(ops2, i2)
 			} else if op1.GetVal() == op2.GetVal() {
 				operation.retain(op1.GetStringVal())
-				op1, i1 = next(ops1, op1, i1)
-				op2, i2 = next(ops2, op2, i2)
+				op1, i1 = next(ops1, i1)
+				op2, i2 = next(ops2, i2)
 			} else {
 				operation.retain(op1.GetStringVal())
 				op2.SetVal(op2.GetVal() - op1.GetVal())
-				op1, i1 = next(ops1, op1, i1)
+				op1, i1 = next(ops1, i1)
 			}
 		} else if op1.IsInsert() && op2.IsDelete() {
 			if op1.GetVal() > -op2.GetVal() {
 				//直接在op1上删除 ，丢弃删除操作 op2
 				strVal := op1.GetStringVal()
 				op1.SetVal(strVal[:op1.GetVal()+op2.GetVal()])
-				op2, i2 = next(ops2, op2, i2)
+				op2, i2 = next(ops2, i2)
 			} else if op1.GetVal() == -op2.GetVal() {
-				op1, i1 = next(ops1, op1, i1)
-				op2, i2 = next(ops2, op2, i2)
+				op1, i1 = next(ops1, i1)
+				op2, i2 = next(ops2, i2)
 			} else {
 				//直接减少，删除的长度，丢弃插入操作
 				op2.SetVal(op2.GetVal() + op1.GetVal())
-				op1, i1 = next(ops1, op1, i1)
+				op1, i1 = next(ops1, i1)
 			}
 		} else if op1.IsInsert() && op2.IsRetain() {
 			if op1.GetVal() > op2.GetVal() {
 				//把第一个插入拆成两部分操作
 				operation.insert(op1.GetStringVal()[0:op2.GetVal()])
 				op1.SetVal(op1.GetStringVal()[op2.GetVal():])
-				op2, i2 = next(ops2, op2, i2)
+				op2, i2 = next(ops2, i2)
 			} else if op1.GetVal() == op2.GetVal() {
 				operation.insert(op1.GetStringVal())
-				op1, i1 = next(ops1, op1, i1)
-				op2, i2 = next(ops2, op2, i2)
+				op1, i1 = next(ops1, i1)
+				op2, i2 = next(ops2, i2)
 			} else {
 				operation.insert(op1.GetStringVal())
 				op2.SetVal(op2.GetVal() - op1.GetVal())
-				op1, i1 = next(ops1, op1, i1)
+				op1, i1 = next(ops1, i1)
 			}
 		} else if op1.IsRetain() && op2.IsDelete() {
 			if op1.GetVal() > -op2.GetVal() {
 				operation.delete(op2.GetStringVal())
 				op1.SetVal(op1.GetVal() + op2.GetVal())
-				op2, i2 = next(ops2, op2, i2)
+				op2, i2 = next(ops2, i2)
 			} else if op1.GetVal() == -op2.GetVal() {
 				operation.delete(op2.GetStringVal())
-				op1, i1 = next(ops1, op1, i1)
-				op2, i2 = next(ops2, op2, i2)
+				op1, i1 = next(ops1, i1)
+				op2, i2 = next(ops2, i2)
 			} else {
 				operation.delete("-" + op1.GetStringVal())
 				op2.SetVal(op2.GetVal() + op1.GetVal())
-				op1, i1 = next(ops1, op1, i1)
+				op1, i1 = next(ops1, i1)
 			}
 		} else {
 			d1, _ := json.Marshal(op1)
@@ -266,9 +264,22 @@ func (o *QuillDelta) delete(n string) (Delta, error) {
 	return o, nil
 }
 
-func next(ops []Op, op Op, i int) (Op, int) {
+func next(ops []Op, i int) (Op, int) {
+	var op Op
 	if i < len(ops) {
-		op = ops[i]
+		if ops[i].IsRetain() {
+			op = &RetainOp{
+				Retain: ops[i].GetVal(),
+			}
+		} else if ops[i].IsInsert() {
+			op = &InsertOp{
+				Insert: ops[i].GetStringVal(),
+			}
+		} else if ops[i].IsDelete() {
+			op = &DeleteOp{
+				Delete: ops[i].GetVal(),
+			}
+		}
 	} else {
 		op = nil
 	}
@@ -303,12 +314,8 @@ func (o *QuillDelta) Transform(operation1In, operation2In Delta) (Delta, Delta, 
 
 	ops1 := operation1.Ops
 	ops2 := operation2.Ops
-	var i1, i2 int
-	op1 := ops1[i1]
-	i1++
-	op2 := ops2[i2]
-	i2++
-
+	op1, i1 := next(ops1, 0)
+	op2, i2 := next(ops2, 0)
 	for true {
 		//insert是用string 表示的，retain用正数表示，delete 用负数表示
 		// At every iteration of the loop, the imaginary cursor that both
@@ -328,7 +335,7 @@ func (o *QuillDelta) Transform(operation1In, operation2In Delta) (Delta, Delta, 
 			//在op1‘ 插入的同时需要在op2’ 增加一个retain
 			operation1prime.insert(op1.GetStringVal())
 			operation2prime.retain(strconv.FormatInt(int64(op1.GetVal()), 10))
-			op1, i1 = next(ops1, op1, i1)
+			op1, i1 = next(ops1, i1)
 			//A = R(3),I('c')
 			// B = R(4), I('d')
 
@@ -337,7 +344,7 @@ func (o *QuillDelta) Transform(operation1In, operation2In Delta) (Delta, Delta, 
 		if op2 != nil && op2.IsInsert() {
 			operation1prime.retain(strconv.FormatInt(int64(op2.GetVal()), 10))
 			operation2prime.insert(op2.GetStringVal())
-			op2, i2 = next(ops2, op2, i2)
+			op2, i2 = next(ops2, i2)
 			//A = R(4),I('c')
 			// B = R(4), I('d')
 			continue
@@ -353,7 +360,7 @@ func (o *QuillDelta) Transform(operation1In, operation2In Delta) (Delta, Delta, 
 				} else if op2.IsDelete() {
 					operation2prime.delete(op2.GetStringVal())
 				}
-				op2, i2 = next(ops2, op2, i2)
+				op2, i2 = next(ops2, i2)
 			}
 			return operation1prime, operation2prime, nil
 		}
@@ -367,7 +374,7 @@ func (o *QuillDelta) Transform(operation1In, operation2In Delta) (Delta, Delta, 
 				} else if op1.IsDelete() {
 					operation1prime.delete(op1.GetStringVal())
 				}
-				op1, i1 = next(ops1, op1, i1)
+				op1, i1 = next(ops1, i1)
 			}
 			return operation1prime, operation2prime, nil
 		}
@@ -378,17 +385,17 @@ func (o *QuillDelta) Transform(operation1In, operation2In Delta) (Delta, Delta, 
 			if op1.GetVal() > op2.GetVal() { //7， 3
 				minl = int(op2.GetVal())                //   3
 				op1.SetVal(op1.GetVal() - op2.GetVal()) // 4    op1'+op2=op1转换后两个保留的和为保留最大长度
-				op2, i2 = next(ops2, op2, i2)           //指向下一个坐标
+				op2, i2 = next(ops2, i2)                //指向下一个坐标
 
 			} else if op1.GetVal() == op2.GetVal() {
 				minl = int(op2.GetVal())
-				op1, i1 = next(ops1, op1, i1)
-				op2, i2 = next(ops2, op2, i2)
+				op1, i1 = next(ops1, i1)
+				op2, i2 = next(ops2, i2)
 				//同时指向下一个坐标
 			} else {
 				minl = int(op1.GetVal())
 				op2.SetVal(op2.GetVal() - op1.GetVal())
-				op1, i1 = next(ops1, op1, i1)
+				op1, i1 = next(ops1, i1)
 			}
 			operation1prime.retain(strconv.FormatInt(int64(minl), 10)) //转换后保留两者的最小位置
 			operation2prime.retain(strconv.FormatInt(int64(minl), 10))
@@ -398,13 +405,13 @@ func (o *QuillDelta) Transform(operation1In, operation2In Delta) (Delta, Delta, 
 			// handle the case that one operation deletes more than the other.
 			if -op1.GetVal() > -op2.GetVal() {
 				op1.SetVal(op1.GetVal() - op2.GetVal()) //都是删除的话，保留删除后的最小位置
-				op2, i2 = next(ops2, op2, i2)
+				op2, i2 = next(ops2, i2)
 			} else if op1.GetVal() == op2.GetVal() {
-				op1, i1 = next(ops1, op1, i1)
-				op2, i2 = next(ops2, op2, i2)
+				op1, i1 = next(ops1, i1)
+				op2, i2 = next(ops2, i2)
 			} else {
 				op2.SetVal(op2.GetVal() - op1.GetVal())
-				op1, i1 = next(ops1, op1, i1)
+				op1, i1 = next(ops1, i1)
 			}
 			// next two cases: delete/retain and retain/delete
 		} else if op1.IsDelete() && op2.IsRetain() {
@@ -412,30 +419,30 @@ func (o *QuillDelta) Transform(operation1In, operation2In Delta) (Delta, Delta, 
 			if -op1.GetVal() > op2.GetVal() {
 				minl = int(op2.GetVal())
 				op1.SetVal(op1.GetVal() + op2.GetVal())
-				op2, i2 = next(ops2, op2, i2)
+				op2, i2 = next(ops2, i2)
 			} else if -op1.GetVal() == op2.GetVal() {
 				minl = int(op2.GetVal())
-				op1, i1 = next(ops1, op1, i1)
-				op2, i2 = next(ops2, op2, i2)
+				op1, i1 = next(ops1, i1)
+				op2, i2 = next(ops2, i2)
 			} else {
 				minl = int(-op1.GetVal())
 				op2.SetVal(op2.GetVal() + op1.GetVal())
-				op1, i1 = next(ops1, op1, i1)
+				op1, i1 = next(ops1, i1)
 			}
 			operation1prime.delete(strconv.FormatInt(int64(-minl), 10))
 		} else if op1.IsRetain() && op2.IsDelete() {
 			if op1.GetVal() > -op2.GetVal() { //永远保留最小位置的情况
 				minl = int(-op2.GetVal())
 				op1.SetVal(op1.GetVal() + op2.GetVal())
-				op2, i2 = next(ops2, op2, i2)
+				op2, i2 = next(ops2, i2)
 			} else if op1.GetVal() == -op2.GetVal() {
 				minl = int(op1.GetVal())
-				op1, i1 = next(ops1, op1, i1)
-				op2, i2 = next(ops2, op2, i2)
+				op1, i1 = next(ops1, i1)
+				op2, i2 = next(ops2, i2)
 			} else {
 				minl = int(op1.GetVal())
 				op2.SetVal(op2.GetVal() + op1.GetVal())
-				op1, i1 = next(ops1, op1, i1)
+				op1, i1 = next(ops1, i1)
 			}
 			operation2prime.delete(strconv.FormatInt(int64(-minl), 10))
 		} else {
@@ -465,19 +472,27 @@ func (o *QuillDelta) Apply(str string) (string, error) {
 				return "", fmt.Errorf("QuillDelta can't retain more characters than are left in the string.")
 			}
 			// Copy skipped part of the old string.
-			newStr[j] = str[strIndex : strIndex+int(o.Ops[i].GetVal())]
+			if j < len(newStr) {
+				newStr[j] = str[strIndex : strIndex+int(o.Ops[i].GetVal())]
+			} else {
+				newStr = append(newStr, str[strIndex:strIndex+int(o.Ops[i].GetVal())])
+			}
 			j++
 			strIndex += int(o.Ops[i].GetVal())
 		} else if o.Ops[i].IsInsert() {
 			// Insert string.
-			newStr[j] = o.Ops[i].GetStringVal()
+			if j < len(newStr) {
+				newStr[j] = o.Ops[i].GetStringVal()
+			} else {
+				newStr = append(newStr, o.Ops[i].GetStringVal())
+			}
 			j++
 		} else { // delete op
 			strIndex -= int(o.Ops[i].GetVal())
 		}
 	}
 	if strIndex != len(str) {
-		return "", fmt.Errorf("The operation didn't operate on the whole string.")
+		return strings.Join(newStr, ""), fmt.Errorf("The operation didn't operate on the whole string.%d,len:%d,str:%s", strIndex, len(str), str)
 	}
 	return strings.Join(newStr, ""), nil
 }

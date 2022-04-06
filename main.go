@@ -89,70 +89,70 @@ func main() {
 	}
 	ABData, _ := json.Marshal(AB)
 	BAData, _ := json.Marshal(BA)
-	fmt.Println("A':", string(ABData), "\nB':", string(BAData))
+	AData, _ := json.Marshal(A)
+	BData, _ := json.Marshal(B)
+	fmt.Println("A", string(AData), "\nAB:", string(ABData), "\nB", string(BData), "\nBA:", string(BAData))
 
-	fmt.Println("======================")
 	// A.compose(AB) 和 B.compose(BA) 都为：
-	A1 := &ot.QuillDelta{
-		Ops: []ot.Op{
-			&ot.RetainOp{
-				Retain: 5,
-			},
-			&ot.InsertOp{
-				Insert: ",",
-			},
-		},
-	}
-	B1 := &ot.QuillDelta{
-		Ops: []ot.Op{
-			&ot.RetainOp{
-				Retain: 6,
-			},
-			&ot.InsertOp{
-				Insert: "xiazemin",
-			},
-			&ot.DeleteOp{
-				Delete: -5,
-			},
-		},
-	}
-	db, _ := doc.Compose(B1)
-	BBA, err := db.Compose(BA)
+	// new Delta([
+	// 	new TextOperator({ action: 'retain', data: 5 }),
+	// 	new TextOperator({ action: 'insert', data: ',' }),
+	// 	new TextOperator({ action: 'retain', data: 1 }),
+	// 	new TextOperator({ action: 'insert', data: 'Tom' }),
+	// 	new TextOperator({ action: 'remove', data: 5 })
+	//   ]);
+	// AB.(*ot.QuillDelta).TargetLength = 0
+	AB.(*ot.QuillDelta).BaseLength = 0
+	// BA.(*ot.QuillDelta).TargetLength = 0
+	BA.(*ot.QuillDelta).BaseLength = 0
+
+	AAB, err := A.Compose(AB)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	da, _ := doc.Compose(A1)
-	AAB, err := da.Compose(AB)
+	BBA, err := B.Compose(BA)
 	if err != nil {
 		fmt.Println(err)
 	}
 
 	AABData, _ := json.Marshal(AAB)
 	BBAData, _ := json.Marshal(BBA)
-
 	fmt.Println("AAB:", string(AABData), "\nBBA:", string(BBAData))
 
-	fmt.Println("==================")
+	//https://npmmirror.com/package/richdoc/v/0.3.7
+	check(doc, A, B, BA.(*ot.QuillDelta), AB.(*ot.QuillDelta), AAB.(*ot.QuillDelta), BBA.(*ot.QuillDelta))
+}
+
+func check(doc, A, B, BA, AB, AAB, BBA *ot.QuillDelta) {
+	fmt.Println("======================")
 	// apply(apply(S, A), B) = apply(S, compose(A, B)) must hold.
-	sa, err := A.Apply("hello world")
+	str := "hello world"
+	fmt.Println(A.BaseLength)
+	A.BaseLength = len(str)
+	sa, err := A.Apply(str)
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println("sa:", sa)
+	fmt.Println("sa:", sa, len(sa))
+	B.BaseLength = len(sa)
 	saa, err := B.Apply(sa)
 	if err != nil {
 		fmt.Println(err)
 	}
+	fmt.Println("saa:", saa)
 
-	cab, err := A.Compose(B)
+	AAB.BaseLength = len(str)
+	sb, err := AAB.Apply(str)
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println("cab:", cab)
-	sb, err := cab.Apply("hello world")
+
+	BBA.BaseLength = len(str)
+	sb1, err := BBA.Apply(str)
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(" apply(apply(S, A), B) :", saa, "\n apply(S, compose(A, B)):", sb)
+	fmt.Println(" apply(apply(S, A), B) :", saa, "\n apply(S, compose(A, B)):", sb, "\n apply(S, compose(A, B)):", sb1)
+
 }
